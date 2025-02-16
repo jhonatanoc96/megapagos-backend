@@ -4,6 +4,7 @@ import { logger } from '@config/logger';
 import NotFound from 'http-errors';
 import { UsuarioRouter } from '@routes/usuario.routes';
 import { ProyectoRouter } from './routes/proyecto.routes';
+import { UsuarioProyectoRouter } from './routes/usuario-proyecto.routes';
 
 export const router = Router();
 
@@ -25,6 +26,7 @@ router.use(
 router.get('/', (req, res) => res.sendStatus(200));
 router.use('/usuarios', UsuarioRouter);
 router.use('/proyectos', ProyectoRouter);
+router.use('/usuario-proyectos', UsuarioProyectoRouter);
 
 /**
  * 404 error handling

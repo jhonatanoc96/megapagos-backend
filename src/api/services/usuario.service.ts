@@ -6,6 +6,7 @@ import {
 import { Usuario } from '../models/usuario.model';
 import bcrypt from 'bcrypt';
 import { UsuarioInterface } from '../interfaces/usuario.interface';
+import { Op } from 'sequelize';
 
 export async function createToken(usuario: any) {
     const payload = {
@@ -92,7 +93,8 @@ export async function registrarService(
     nombre: string,
     email: string,
     password: string,
-    rol: string
+    rol: string,
+    administrador_id: string | null = null
 ) {
 
     return new Promise(async (resolve, reject) => {
@@ -104,6 +106,7 @@ export async function registrarService(
             usuario.email = email;
             usuario.password = password;
             usuario.rol = rol;
+            usuario.administrador_id = administrador_id ? parseInt(administrador_id) : null;
 
             await usuario.save();
 
@@ -227,7 +230,12 @@ export function obtenerUsuariosPorAdministradorService(
         try {
             const usuarios = await Usuario.findAll({
                 where: {
-                    administrador_id
+                    administrador_id,
+                    [Op.and]: {
+                        id: {
+                            [Op.ne]: administrador_id
+                        }
+                    }
                 }
             });
 

@@ -49,7 +49,8 @@ export async function registrar(req: express.Request, res: express.Response) {
         nombre,
         email,
         password,
-        rol
+        rol,
+        administrador_id
     } = req.body;
 
     if (!nombre) {
@@ -69,7 +70,7 @@ export async function registrar(req: express.Request, res: express.Response) {
     }
 
     try {
-        const response: any = await registrarService(nombre, email, password, rol);
+        const response: any = await registrarService(nombre, email, password, rol, administrador_id);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({
