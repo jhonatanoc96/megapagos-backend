@@ -16,6 +16,7 @@ export class Proyecto extends Model<ProyectoInterface> {
     @Column({
         type: DataType.STRING,
         allowNull: false,
+        unique: true,
     }) nombre!: string;
 
     @Column({

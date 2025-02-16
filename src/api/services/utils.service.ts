@@ -33,8 +33,3 @@ export function getDecodedToken(token: string) {
     // return jwt.decode(token);
     return jwt.verify(token, secret);
 }
-
-export function limitDecimalPlaces(value: number, decimalPlaces = 1) {
-    const factor = Math.pow(10, decimalPlaces);
-    return Math.round(value * factor) / factor;
-}

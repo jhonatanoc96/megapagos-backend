@@ -1,75 +1,28 @@
 import express from 'express';
 import {
-    autenticarService,
+    crearService,
     eliminarService,
-    registrarService,
     actualizarService,
-    obtenerUsuariosPorAdministradorService
-} from '@services/usuario.service';
+    obtenerProyectosPorAdministradorService
+} from '@services/proyecto.service';
 
-export async function autenticar(req: express.Request, res: express.Response) {
-    const { email, password } = req.body;
-
-    if (!email) {
-        return res.status(400).send({ message: 'El correo es obligatorio' });
-    }
-
-    if (!password) {
-        return res.status(400).send({ message: 'La contraseña es obligatoria' });
-    }
-
-    try {
-        const response: any = await autenticarService(email, password);
-
-        if (!response || response?.status != 200 || !response?.usuario || !response?.message) {
-            return res.status(500).send({
-                status: 500,
-                message: 'Error',
-            });
-        }
-
-        return res.status(200).send({
-            status: 200,
-            message: response?.message,
-            user: response?.usuario,
-            token: response?.token
-        });
-
-    } catch (error: any) {
-        return res.status(error?.status || 500).send({
-            status: error?.status || 500,
-            message: error?.message || 'Error',
-        });
-
-    }
-}
-
-export async function registrar(req: express.Request, res: express.Response) {
+export async function crear(req: express.Request, res: express.Response) {
     const {
+        administrador_id,
         nombre,
-        email,
-        password,
-        rol
+        descripcion = ''
     } = req.body;
+
+    if (!administrador_id) {
+        return res.status(400).send({ message: 'El administrador es obligatorio' });
+    }
 
     if (!nombre) {
         return res.status(400).send({ message: 'El nombre es obligatorio' });
     }
 
-    if (!email) {
-        return res.status(400).send({ message: 'El correo es obligatorio' });
-    }
-
-    if (!password) {
-        return res.status(400).send({ message: 'La contraseña es obligatoria' });
-    }
-
-    if (!rol) {
-        return res.status(400).send({ message: 'El rol es obligatorio' });
-    }
-
     try {
-        const response: any = await registrarService(nombre, email, password, rol);
+        const response: any = await crearService(administrador_id, nombre, descripcion);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({
@@ -149,11 +102,11 @@ export async function actualizar(req: express.Request, res: express.Response) {
     }
 }
 
-export async function obtenerUsuariosPorAdministrador(req: express.Request, res: express.Response) {
+export async function obtenerProyectosPorAdministrador(req: express.Request, res: express.Response) {
     const { id } = req.params;
 
     try {
-        const response: any = await obtenerUsuariosPorAdministradorService(id);
+        const response: any = await obtenerProyectosPorAdministradorService(id);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({
@@ -167,6 +120,7 @@ export async function obtenerUsuariosPorAdministrador(req: express.Request, res:
             message: response?.message,
             response: response?.response
         });
+        
     } catch (error: any) {
         return res.status(error?.status || 500).send({
             status: error?.status || 500,

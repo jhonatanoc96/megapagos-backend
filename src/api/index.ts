@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import { logger } from '@config/logger';
 import NotFound from 'http-errors';
 import { UsuarioRouter } from '@routes/usuario.routes';
+import { ProyectoRouter } from './routes/proyecto.routes';
 
 export const router = Router();
 
@@ -23,6 +24,7 @@ router.use(
  */
 router.get('/', (req, res) => res.sendStatus(200));
 router.use('/usuarios', UsuarioRouter);
+router.use('/proyectos', ProyectoRouter);
 
 /**
  * 404 error handling
