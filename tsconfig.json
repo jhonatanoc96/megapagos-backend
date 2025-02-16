@@ -1,0 +1,52 @@
+{
+    "ts-node": {
+        "require": [
+            "tsconfig-paths/register"
+        ]
+    },
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "paths": {
+            "@src/*": [
+                "*"
+            ],
+            "@controllers/*": [
+                "api/controllers/*"
+            ],
+            "@middlewares/*": [
+                "api/middlewares/*"
+            ],
+            "@models/*": [
+                "api/models/*"
+            ],
+            "@routes/*": [
+                "api/routes/*"
+            ],
+            "@services/*": [
+                "api/services/*"
+            ],
+            "@interfaces/*": [
+                "api/interfaces/*"
+            ],
+            "@config/*": [
+                "config/*"
+            ],
+        },
+        "target": "es6",
+        "module": "commonjs",
+        "rootDir": "src",
+        "outDir": "dist",
+        "strict": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    },
+    "include": [
+        "**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
