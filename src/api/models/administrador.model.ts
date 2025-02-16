@@ -23,6 +23,7 @@ export class Administrador extends Model<AdministradorInterface> {
     @Column({
         type: DataType.STRING,
         allowNull: false,
+        unique: true,
     }) email!: string;
 
     @Column({

@@ -1,4 +1,4 @@
-import { Table, Column, Model, DataType, ForeignKey, BelongsTo, BeforeCreate } from 'sequelize-typescript';
+import { Table, Column, Model, DataType, ForeignKey, BelongsTo, BeforeCreate, BeforeDestroy, BeforeUpdate } from 'sequelize-typescript';
 import { UsuarioInterface } from '@interfaces/usuario.interface';
 import { Administrador } from './administrador.model';
 import bcrypt from 'bcrypt';
@@ -21,6 +21,7 @@ export class Usuario extends Model<UsuarioInterface> {
     @Column({
         type: DataType.STRING,
         allowNull: false,
+        unique: true,
     }) email!: string;
 
     @Column({
@@ -36,15 +37,78 @@ export class Usuario extends Model<UsuarioInterface> {
     @ForeignKey(() => Administrador)
     @Column({
         type: DataType.INTEGER,
-        allowNull: false,
-    }) administrador_id!: number;
+        allowNull: true,
+    }) administrador_id!: number | null;
 
     @BelongsTo(() => Administrador)
     administrador!: Administrador;
 
     @BeforeCreate
     static async hashPassword(usuario: Usuario) {
+        // Hash password before creating the user
         const salt = await bcrypt.genSalt(10);
         usuario.password = await bcrypt.hash(usuario.password, salt);
+    }
+
+    @BeforeCreate
+    static async createAdmin(usuario: Usuario) {
+        // If rol == 'administrador', create a new administrador, get id and set to administrador_id
+        if (usuario.rol === 'administrador') {
+            const administrador = new Administrador();
+
+            administrador.nombre = usuario.nombre;
+            administrador.email = usuario.email;
+            administrador.password = usuario.password;
+
+            await administrador.save();
+
+            usuario.administrador_id = administrador
+            ? administrador.id
+            : null;
+        }
+    }
+
+    @BeforeDestroy
+    static async deleteAdmin(usuario: Usuario) {
+        // If rol == 'administrador', delete the associated administrador
+        if (usuario.rol === 'administrador' && usuario.administrador_id) {
+            const administrador = await Administrador.findByPk(usuario.administrador_id);
+            if (administrador) {
+                await administrador.destroy();
+            }
+        }
+    }
+
+    @BeforeUpdate
+    static async updateAdmin(usuario: Usuario) {
+        // If rol changes from 'usuario' to 'administrador', create a new administrador
+        if (usuario.changed('rol') && usuario.rol === 'administrador') {
+            const administrador = new Administrador();
+
+            administrador.nombre = usuario.nombre;
+            administrador.email = usuario.email;
+            administrador.password = usuario.password;
+
+            await administrador.save();
+
+            usuario.administrador_id = administrador.id;
+        } else if (usuario.changed('rol') && usuario.rol !== 'administrador' && usuario.administrador_id) {
+            // If rol changes from 'administrador' to something else, delete the associated administrador
+            const administrador = await Administrador.findByPk(usuario.administrador_id);
+            if (administrador) {
+                await administrador.destroy();
+            }
+            usuario.administrador_id = null;
+        } else if (usuario.administrador_id) {
+            // If other fields are updated, update the associated administrador
+            const administrador = await Administrador.findByPk(usuario.administrador_id);
+            if (administrador) {
+                administrador.nombre = usuario.nombre;
+                administrador.email = usuario.email;
+                administrador.password = usuario.password;
+
+                await administrador.save();
+            }
+        }
     }
 }

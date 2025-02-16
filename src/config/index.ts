@@ -1,4 +1,3 @@
-import jwt from 'jsonwebtoken';
 import convict from 'convict';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -42,12 +41,12 @@ const config = convict({
         accessTokenExpiryTime: {
             doc: 'Access token expiry time (in seconds)',
             format: 'int',
-            default: 28800,
+            default: 3600,
         },
         refreshTokenExpiryTime: {
             doc: 'Refresh token expiry time (in seconds)',
             format: 'int',
-            default: 28800,
+            default: 3600,
         },
     },
     SMTP: {

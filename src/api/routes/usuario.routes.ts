@@ -1,5 +1,4 @@
 import Router from 'express-promise-router';
-import express from 'express';
 import {
     autenticar,
     registrar,
@@ -8,11 +7,12 @@ import {
     obtenerUsuariosPorAdministrador
 } from '@controllers/usuario.controller'
 import { isAuth } from '@middlewares/auth.middleware';
+import { isAdmin } from '@middlewares/admin.middleware';
 
 export const UsuarioRouter = Router()
 
 UsuarioRouter.post('/autenticar', autenticar);
 UsuarioRouter.post('/registrar', registrar);
-UsuarioRouter.get('/obtener', isAuth, obtenerUsuariosPorAdministrador);
-UsuarioRouter.delete('/eliminar/:correo', isAuth, eliminar);
-UsuarioRouter.put('/actualizar/:correo', isAuth, actualizar);
+UsuarioRouter.get('/obtener-por-admin/:id', [isAuth, isAdmin], obtenerUsuariosPorAdministrador);
+UsuarioRouter.delete('/eliminar/:id', [isAuth, isAdmin], eliminar);
+UsuarioRouter.put('/actualizar/:id', [isAuth, isAdmin], actualizar);

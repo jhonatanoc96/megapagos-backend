@@ -85,7 +85,7 @@ async function connectToDb() {
         logger.info('Connected to PostgreSQL with Sequelize ');
 
         // Sync all models
-        await sequelize.sync({ force: true }); // Use { force: true } to drop and recreate tables on every sync
+        await sequelize.sync(); // Use { force: true } to drop and recreate tables on every sync
         logger.info('All models were synchronized successfully.');
 
     } catch (error) {

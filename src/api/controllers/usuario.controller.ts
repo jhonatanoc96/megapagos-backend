@@ -6,21 +6,21 @@ import {
     registrarService,
     actualizarService,
     obtenerUsuariosPorAdministradorService
-} from '@src/api/services/usuario.service';
+} from '@services/usuario.service';
 
 export async function autenticar(req: express.Request, res: express.Response) {
-    const { correo, contrasena } = req.body;
+    const { email, password } = req.body;
 
-    if (!correo) {
+    if (!email) {
         return res.status(400).send({ message: 'El correo es obligatorio' });
     }
 
-    if (!contrasena) {
+    if (!password) {
         return res.status(400).send({ message: 'La contraseña es obligatoria' });
     }
 
     try {
-        const response: any = await autenticarService(correo, contrasena);
+        const response: any = await autenticarService(email, password);
 
         if (!response || response?.status != 200 || !response?.usuario || !response?.message) {
             return res.status(500).send({
@@ -33,7 +33,6 @@ export async function autenticar(req: express.Request, res: express.Response) {
             status: 200,
             message: response?.message,
             user: response?.usuario,
-            primerLogin: response?.primerLogin,
             token: response?.token
         });
 
@@ -48,34 +47,30 @@ export async function autenticar(req: express.Request, res: express.Response) {
 
 export async function registrar(req: express.Request, res: express.Response) {
     const {
-        correo,
-        contrasena,
         nombre,
-        apellido,
-        cel,
-        utc,
-        pais,
-        cedula
+        email,
+        password,
+        rol
     } = req.body;
-
-    if (!correo) {
-        return res.status(400).send({ message: 'El correo es obligatorio' });
-    }
-
-    if (!contrasena) {
-        return res.status(400).send({ message: 'La contraseña es obligatoria' });
-    }
 
     if (!nombre) {
         return res.status(400).send({ message: 'El nombre es obligatorio' });
     }
 
-    if (!apellido) {
-        return res.status(400).send({ message: 'El apellido es obligatorio' });
+    if (!email) {
+        return res.status(400).send({ message: 'El correo es obligatorio' });
+    }
+
+    if (!password) {
+        return res.status(400).send({ message: 'La contraseña es obligatoria' });
+    }
+
+    if (!rol) {
+        return res.status(400).send({ message: 'El rol es obligatorio' });
     }
 
     try {
-        const response: any = await registrarService(correo, contrasena, nombre, apellido, cel, utc, pais, cedula);
+        const response: any = await registrarService(nombre, email, password, rol);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({
@@ -97,15 +92,14 @@ export async function registrar(req: express.Request, res: express.Response) {
 }
 
 export async function eliminar(req: express.Request, res: express.Response) {
-    const { correo } = req.params;
-    const { preview } = req.query;
+    const { id } = req.params;
 
-    if (!correo) {
-        return res.status(400).send({ message: 'El correo es obligatorio' });
+    if (!id) {
+        return res.status(400).send({ message: 'El ID es obligatorio' });
     }
 
     try {
-        const response: any = await eliminarService(correo, preview?.toString());
+        const response: any = await eliminarService(id);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({
@@ -129,45 +123,38 @@ export async function eliminar(req: express.Request, res: express.Response) {
 }
 
 export async function actualizar(req: express.Request, res: express.Response) {
-    const { correo } = req.query;
+    const { id } = req.params;
+    const { data } = req.body;
 
-    if (!correo) {
-        return res.status(400).send({ message: 'El correo es obligatorio' });
+    if (!id) {
+        return res.status(400).send({ message: 'El ID es obligatorio' });
+    }
+
+    if (!data) {
+        return res.status(400).send({ message: 'Faltan parámetros' });
     }
 
     try {
-        const response: any = await actualizarService(correo.toString());
+        await actualizarService(id, data);
 
-        if (response?.status == 200) {
-            return res.status(200).sendFile(path.join(__dirname + '/pages/account_activated.html'));
-
-        } else {
-            return res.status(500).sendFile(path.join(__dirname + '/pages/error.html'));
-        }
+        return res.status(200).send({
+            status: 200,
+            message: 'Usuario actualizado correctamente'
+        });
 
     } catch (error: any) {
-        if (error?.status == 404) {
-            return res.status(404).sendFile(path.join(__dirname + '/pages/account_not_found.html'));
-
-        } else if (error?.status == 403) {
-            return res.status(403).sendFile(path.join(__dirname + '/pages/account_already_activated.html'));
-
-        } else {
-            return res.status(500).sendFile(path.join(__dirname + '/pages/error.html'));
-        }
+        return res.status(error?.status || 500).send({
+            status: error?.status || 500,
+            message: error?.message || 'Error',
+        });
     }
 }
 
-
 export async function obtenerUsuariosPorAdministrador(req: express.Request, res: express.Response) {
-    const { correo } = req.body;
-
-    if (!correo) {
-        return res.status(400).send({ message: 'El correo es obligatorio' });
-    }
+    const { id } = req.params;
 
     try {
-        const response: any = await obtenerUsuariosPorAdministradorService(correo);
+        const response: any = await obtenerUsuariosPorAdministradorService(id);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({

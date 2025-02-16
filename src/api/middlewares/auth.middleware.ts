@@ -2,7 +2,7 @@ import config from '@config/index';
 import express from 'express';
 import {
     decodeToken
-} from '@src/api/services/usuario.service';
+} from '@services/usuario.service';
 const { jwtConfig } = config;
 
 export function isAuth(req: express.Request, res: express.Response, next: express.NextFunction) {

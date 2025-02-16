@@ -1,16 +1,17 @@
 import moment from 'moment';
 import {
     generateToken,
-    getDecodedToken
+    getDecodedToken,
 } from '@services/utils.service'
-// import { Usuario } from '@models/usuario.model';
-
-const Usuario: any = {};
+import { Usuario } from '../models/usuario.model';
+import bcrypt from 'bcrypt';
+import { UsuarioInterface } from '../interfaces/usuario.interface';
 
 export async function createToken(usuario: any) {
     const payload = {
         sub: usuario._id,
-        iat: moment().unix()
+        iat: moment().unix(),
+        usuario
     };
 
     return await generateToken(payload, payload);
@@ -40,16 +41,31 @@ export async function decodeToken(token: any) {
     return decoded;
 }
 
-export function autenticarService(correo: string, contrasena: string) {
+export function autenticarService(email: string, password: string) {
     return new Promise(async (resolve, reject) => {
         try {
-            let usuario = {};
+            // Obtener usuario
+            const usuario = await Usuario.findOne({
+                where: {
+                    email
+                }
+            }) as UsuarioInterface | null;
 
             // Validar si existe
             if (!usuario) {
                 reject({
                     status: 404,
                     message: 'Usuario no encontrado'
+                });
+                return;
+            }
+
+            const isPasswordValid = await bcrypt.compare(password, usuario.password);
+
+            if (!isPasswordValid) {
+                reject({
+                    status: 401,
+                    message: 'Contraseña incorrecta'
                 });
             }
 
@@ -73,69 +89,70 @@ export function autenticarService(correo: string, contrasena: string) {
 }
 
 export async function registrarService(
-    correo: string,
-    contrasena: string,
     nombre: string,
-    apellido: string,
-    cel: string,
-    utc: string,
-    pais: string,
-    cedula: string
-) {
-
-    // const usuario = new Usuario({
-    //     correo,
-    //     contrasena,
-    //     nombre,
-    //     apellido,
-    //     cel,
-    //     utc,
-    //     pais,
-    //     cedula,
-    //     dias_licencia: 7,
-    // });
-
-    // return new Promise(async (resolve, reject) => {
-    //     try {
-    //         await usuario.save();
-
-    //         resolve({
-    //             status: 200,
-    //             message: 'Gracias por registrarte'
-    //         });
-
-    //     } catch (error: any) {
-    //         if (error) {
-    //             reject({
-    //                 status: 500,
-    //                 message: `Error al registrar: ${error}`,
-    //             });
-    //         }
-
-    //         reject({
-    //             status: 500,
-    //             message: 'Error al registrar'
-    //         });
-    //     }
-    // });
-}
-
-export async function eliminarService(
-    correo: string,
-    preview: string = 'false'
+    email: string,
+    password: string,
+    rol: string
 ) {
 
     return new Promise(async (resolve, reject) => {
         try {
-            // Obtener usuario
-            const usuario = {};
 
+            const usuario = new Usuario();
+
+            usuario.nombre = nombre;
+            usuario.email = email;
+            usuario.password = password;
+            usuario.rol = rol;
+
+            await usuario.save();
+
+            resolve({
+                status: 200,
+                message: `El usuario ${nombre} ha sido registrado correctamente`,
+            });
+
+        } catch (error: any) {
+            if (error) {
+                if (error.toString().includes('SequelizeUniqueConstraintError')) {
+                    reject({
+                        status: 400,
+                        message: `El correo ${email} ya está en uso`,
+                    });
+                }
+
+                reject({
+                    status: 500,
+                    message: `Error al registrar: ${error}`,
+                });
+            }
+
+            reject({
+                status: 500,
+                message: 'Error al registrar'
+            });
+        }
+    });
+}
+
+export async function eliminarService(
+    id: string,
+) {
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            const usuario = await Usuario.findByPk(id) as Usuario;
+
+            // Validar si existe
             if (!usuario) {
                 reject({
                     status: 404,
                     message: 'Usuario no encontrado'
                 });
+                return;
             }
+
+            await usuario.destroy();
 
             resolve({
                 status: 200,
@@ -162,74 +179,70 @@ export async function eliminarService(
 }
 
 
-export function actualizarService(correo: string) {
+export function actualizarService(
+    id: string,
+    data: any
+) {
     return new Promise(async (resolve, reject) => {
         try {
-            const usuario = {};
+            // Obtener usuario
+            const usuario = await Usuario.findByPk(id) as Usuario;
 
             // Validar si existe
-            if (!usuario || usuario == null) {
+            if (!usuario) {
                 reject({
                     status: 404,
                     message: 'Usuario no encontrado'
                 });
+                return;
             }
+
+            await usuario.update(data);
 
             resolve({
                 status: 200,
-                message: 'Cuenta activada correctamente',
+                message: 'Usuario actualizado correctamente',
             });
 
         } catch (error) {
+            if (error) {
+                reject({
+                    status: 500,
+                    message: `Error al actualizar el usuario: ${error}`,
+                });
+            }
+
             reject({
                 status: 500,
-                message: 'Error al activar cuenta'
+                message: 'Error al actualizar'
             });
         }
     });
 }
 
-export function obtenerUsuariosPorAdministradorService(correo: string) {
+export function obtenerUsuariosPorAdministradorService(
+    administrador_id: string
+) {
     return new Promise(async (resolve, reject) => {
         try {
-            const usuario: any = {};
-
-            // Validar si existe
-            if (!usuario || usuario == null) {
-                reject({
-                    status: 404,
-                    message: `El usuario con correo ${correo} no existe`
-                });
-            }
-
-            // Validar contraseña 
-            const promise = await new Promise((resolve, reject) => {
-                const response = usuario.generatePasswordReset();
-                if (response) {
-                    resolve(response);
-                } else {
-                    reject(null);
+            const usuarios = await Usuario.findAll({
+                where: {
+                    administrador_id
                 }
             });
 
-            if (!promise || promise == null) {
-                reject({
-                    status: 500,
-                    message: 'Error al generar token'
-                });
-            }
-
-            await usuario.save();
-
             resolve({
                 status: 200,
-                message: `Se ha enviado un correo para restablecer la contraseña a ${usuario.correo}`
+                message: 'Usuarios encontrados',
+                response: {
+                    usuarios
+                }
             });
 
         } catch (error) {
             reject({
                 status: 500,
-                message: 'Error al activar cuenta'
+                message: 'Error al obtener usuarios'
             });
         }
     });
