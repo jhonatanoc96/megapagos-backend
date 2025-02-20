@@ -119,9 +119,11 @@ export async function registrarService(
         } catch (error: any) {
             if (error) {
                 if (error.toString().includes('SequelizeUniqueConstraintError')) {
+                    const encodedMessage = encodeURIComponent(`El correo ${email} ya está en uso` || 'Error');
+
                     reject({
                         status: 400,
-                        message: `El correo ${email} ya está en uso`,
+                        message: encodedMessage,
                     });
                 }
 

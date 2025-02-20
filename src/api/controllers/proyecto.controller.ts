@@ -85,7 +85,7 @@ export async function actualizar(req: express.Request, res: express.Response) {
     }
 
     if (!data) {
-        return res.status(400).send({ message: 'Faltan parámetros' });
+        return res.status(400).send({ message: 'Faltan parametros' });
     }
 
     try {
