@@ -20,8 +20,9 @@ npm start
 En el archivo src/index.ts se configura la conexión con la base de datos
 utilizando Sequelize y el levantamiento del API.
 
+
 # Sentencias SQL
-Las tablas en la base de datos fueron creadas con los siguientes queries.\
+Las tablas en la base de datos fueron creadas con los siguientes queries. \
 
 CREATE TABLE IF NOT EXISTS administradores (
       id SERIAL PRIMARY KEY,
