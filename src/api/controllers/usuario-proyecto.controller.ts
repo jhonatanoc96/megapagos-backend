@@ -38,14 +38,17 @@ export async function crear(req: express.Request, res: express.Response) {
 }
 
 export async function eliminar(req: express.Request, res: express.Response) {
-    const { id } = req.params;
+    const {
+        usuario_id,
+        proyecto_id
+    } = req.body;
 
-    if (!id) {
-        return res.status(400).send({ message: 'El ID es obligatorio' });
+    if (!usuario_id || !proyecto_id) {
+        return res.status(400).send({ message: 'Faltan parámetros' });
     }
 
     try {
-        const response: any = await eliminarService(id);
+        const response: any = await eliminarService(usuario_id, proyecto_id);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({

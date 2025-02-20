@@ -6,7 +6,8 @@ import {
     actualizarService,
     obtenerUsuariosPorAdministradorService,
     obtenerTotalUsuariosPorAdministradorService,
-    obtenerUsuarioPorIDService
+    obtenerUsuarioPorIDService,
+    obtenerUsuariosPorAdministradorConProyectoPorIDService
 } from '@services/usuario.service';
 import { stat } from 'fs';
 
@@ -218,6 +219,40 @@ export async function obtenerUsuarioPorID(req: express.Request, res: express.Res
     
     try {
         const response: any = await obtenerUsuarioPorIDService(id);
+
+        if (!response || response?.status != 200 || !response?.message) {
+            return res.status(500).send({
+                status: 500,
+                message: 'Error'
+            });
+        }
+
+        return res.status(200).send({
+            status: 200,
+            message: response?.message,
+            response: response?.response
+        });
+    } catch (error: any) {
+        return res.status(error?.status || 500).send({
+            status: error?.status || 500,
+            message: error?.message || 'Error',
+        });
+    }
+}
+
+export async function obtenerUsuariosPorAdministradorConProyectoPorID(req: express.Request, res: express.Response) {
+    const { id, project_id } = req.params;
+
+    if (!id) {
+        return res.status(400).send({ message: 'El ID es obligatorio', status: 400 });
+    }
+
+    if (!project_id) {
+        return res.status(400).send({ message: 'El ID del proyecto es obligatorio', status: 400 });
+    }
+    
+    try {
+        const response: any = await obtenerUsuariosPorAdministradorConProyectoPorIDService(id, project_id);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({

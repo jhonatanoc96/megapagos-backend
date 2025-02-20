@@ -18,7 +18,7 @@ export async function crearService(
 
             resolve({
                 status: 200,
-                message: `El registro ha sido creado correctamente`,
+                message: `Proyecto asociado correctamente`,
             });
 
         } catch (error: any) {
@@ -38,12 +38,18 @@ export async function crearService(
 }
 
 export async function eliminarService(
-    id: string,
+    usuario_id: string,
+    proyecto_id: string
 ) {
 
     return new Promise(async (resolve, reject) => {
         try {
-            const usuarioProyecto = await UsuarioProyectos.findByPk(id) as UsuarioProyectos;
+            const usuarioProyecto = await UsuarioProyectos.findOne({
+                where: {
+                    usuario_id: parseInt(usuario_id),
+                    proyecto_id: parseInt(proyecto_id)
+                }
+            });
 
             // Validar si existe
             if (!usuarioProyecto) {
@@ -58,7 +64,7 @@ export async function eliminarService(
 
             resolve({
                 status: 200,
-                message: 'Registro eliminado correctamente',
+                message: 'Proyecto desasociado correctamente',
                 response: {
                     usuarioProyecto
                 }

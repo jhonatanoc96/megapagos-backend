@@ -12,4 +12,4 @@ export const UsuarioProyectoRouter = Router()
 
 UsuarioProyectoRouter.post('/crear', [isAuth, isAdmin], crear);
 UsuarioProyectoRouter.get('/obtener-por-usuario/:id', [isAuth, isUser], obtenerProyectosPorUsuariosAsociados);
-UsuarioProyectoRouter.delete('/eliminar/:id', [isAuth, isAdmin], eliminar);
+UsuarioProyectoRouter.delete('/eliminar', [isAuth, isAdmin], eliminar);

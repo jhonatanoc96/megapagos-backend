@@ -7,6 +7,7 @@ import { Usuario } from '../models/usuario.model';
 import bcrypt from 'bcrypt';
 import { UsuarioInterface } from '../interfaces/usuario.interface';
 import { Op } from 'sequelize';
+import { UsuarioProyectos } from '../models/usuario-proyecto.model';
 
 export async function createToken(usuario: any) {
     const payload = {
@@ -367,6 +368,63 @@ export function obtenerUsuarioPorIDService(
             reject({
                 status: 500,
                 message: 'Error al obtener usuario'
+            });
+        }
+    });
+}
+
+
+export function obtenerUsuariosPorAdministradorConProyectoPorIDService(
+    administrador_id: string,
+    project_id: string,
+) {
+
+    return new Promise(async (resolve, reject) => {
+        try {
+            let params = {
+                where: {
+                    administrador_id,
+                    [Op.and]: {
+                        id: {
+                            [Op.ne]: administrador_id
+                        }
+                    }
+                },
+                order: [['createdAt', 'DESC']]
+            };
+
+            let usuarios: any = await Usuario.findAll({
+                ...params,
+                order: [['createdAt', 'DESC']]
+            });
+
+            if (usuarios) {
+                for (const usuario of usuarios) {
+                    const proyecto = await UsuarioProyectos.findOne({
+                        where: {
+                            usuario_id: usuario.id,
+                            proyecto_id: project_id
+                        }
+                    });
+
+                    if (proyecto) {
+                        usuario.dataValues.proyecto = proyecto.dataValues;
+                    }
+                }
+            }
+
+            resolve({
+                status: 200,
+                message: 'Usuarios encontrados',
+                response: {
+                    usuarios
+                }
+            });
+
+        } catch (error) {
+            reject({
+                status: 500,
+                message: 'Error al obtener usuarios'
             });
         }
     });
