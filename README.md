@@ -19,3 +19,39 @@ npm start
 # Nota:
 En el archivo src/index.ts se configura la conexión con la base de datos
 utilizando Sequelize y el levantamiento del API.
+
+# Sentencias SQL
+Las tablas en la base de datos fueron creadas con los siguientes queries.
+CREATE TABLE IF NOT EXISTS administradores (
+      id SERIAL PRIMARY KEY,
+      nombre VARCHAR(255) NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL
+    );
+
+CREATE TABLE IF NOT EXISTS proyectos (
+      id SERIAL PRIMARY KEY,
+      nombre VARCHAR(255) NOT NULL,
+      descripcion TEXT,
+      administrador_id INTEGER,
+      FOREIGN KEY (administrador_id) REFERENCES administradores(id)
+    )
+
+CREATE TABLE IF NOT EXISTS usuarios (
+      id SERIAL PRIMARY KEY,
+      nombre VARCHAR(255) NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password TEXT NOT NULL,
+      rol VARCHAR(50) NOT NULL,
+      administrador_id INTEGER,
+      FOREIGN KEY (administrador_id) REFERENCES administradores(id)
+    )
+
+
+CREATE TABLE IF NOT EXISTS usuario_proyectos (
+    id SERIAL PRIMARY KEY,
+    usuario_id INTEGER NOT NULL,
+    proyecto_id INTEGER NOT NULL,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id),
+    FOREIGN KEY (proyecto_id) REFERENCES proyectos(id)
+    );# megapagos-frontend
