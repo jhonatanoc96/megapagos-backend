@@ -3,7 +3,9 @@ import {
     crearService,
     eliminarService,
     actualizarService,
-    obtenerProyectosPorAdministradorService
+    obtenerProyectosPorAdministradorService,
+    obtenerTotalProyectosPorAdministradorService,
+    obtenerProyectoPorIDService
 } from '@services/proyecto.service';
 
 export async function crear(req: express.Request, res: express.Response) {
@@ -104,9 +106,12 @@ export async function actualizar(req: express.Request, res: express.Response) {
 
 export async function obtenerProyectosPorAdministrador(req: express.Request, res: express.Response) {
     const { id } = req.params;
+    const query = req.query.query?.toString();
+    const page = Number(req.query.page);
+    const limit = Number(req.query.limit);
 
     try {
-        const response: any = await obtenerProyectosPorAdministradorService(id);
+        const response: any = await obtenerProyectosPorAdministradorService(id, query, page, limit);
 
         if (!response || response?.status != 200 || !response?.message) {
             return res.status(500).send({
@@ -120,7 +125,68 @@ export async function obtenerProyectosPorAdministrador(req: express.Request, res
             message: response?.message,
             response: response?.response
         });
-        
+
+    } catch (error: any) {
+        return res.status(error?.status || 500).send({
+            status: error?.status || 500,
+            message: error?.message || 'Error',
+        });
+    }
+
+}
+
+export async function obtenerTotalProyectosPorAdministrador(req: express.Request, res: express.Response) {
+    const { id } = req.params;
+    const query = req.query.query?.toString();
+
+    try {
+        const response: any = await obtenerTotalProyectosPorAdministradorService(id, query);
+
+        if (!response || response?.status != 200 || !response?.message) {
+            return res.status(500).send({
+                status: 500,
+                message: 'Error'
+            });
+        }
+
+        return res.status(200).send({
+            status: 200,
+            message: response?.message,
+            response: response?.response
+        });
+
+    } catch (error: any) {
+        return res.status(error?.status || 500).send({
+            status: error?.status || 500,
+            message: error?.message || 'Error',
+        });
+    }
+
+}
+
+export async function obtenerProyectoPorID(req: express.Request, res: express.Response) {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).send({ message: 'El ID es obligatorio' });
+    }
+
+    try {
+        const response: any = await obtenerProyectoPorIDService(id);
+
+        if (!response || response?.status != 200 || !response?.message) {
+            return res.status(500).send({
+                status: 500,
+                message: 'Error'
+            });
+        }
+
+        return res.status(200).send({
+            status: 200,
+            message: response?.message,
+            response: response?.response
+        });
+
     } catch (error: any) {
         return res.status(error?.status || 500).send({
             status: error?.status || 500,

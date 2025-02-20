@@ -200,6 +200,14 @@ export function actualizarService(
                 return;
             }
 
+            if (data.password && data.password_confirmation && data.password !== data.password_confirmation) {
+                reject({
+                    status: 400,
+                    message: 'Las contraseñas no coinciden'
+                });
+                return;
+            }
+
             await usuario.update(data);
 
             resolve({
@@ -224,19 +232,44 @@ export function actualizarService(
 }
 
 export function obtenerUsuariosPorAdministradorService(
-    administrador_id: string
+    administrador_id: string,
+    query: string = '',
+    page: number = 1,
+    limit: number = 10
 ) {
     return new Promise(async (resolve, reject) => {
         try {
-            const usuarios = await Usuario.findAll({
+            let offset = (page - 1) * limit;
+
+            let params = {
                 where: {
                     administrador_id,
                     [Op.and]: {
                         id: {
                             [Op.ne]: administrador_id
                         }
-                    }
-                }
+                    },
+                    [Op.or]: [
+                        {
+                            nombre: {
+                                [Op.like]: `%${query}%`
+                            }
+                        },
+                        {
+                            email: {
+                                [Op.like]: `%${query}%`
+                            }
+                        }
+                    ]
+                },
+                limit,
+                offset,
+                order: [['createdAt', 'DESC']]
+            };
+
+            const usuarios = await Usuario.findAll({
+                ...params,
+                order: [['createdAt', 'DESC']]
             });
 
             resolve({
@@ -251,6 +284,89 @@ export function obtenerUsuariosPorAdministradorService(
             reject({
                 status: 500,
                 message: 'Error al obtener usuarios'
+            });
+        }
+    });
+}
+
+export function obtenerTotalUsuariosPorAdministradorService(
+    administrador_id: string,
+    query: string = ''
+) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let params = {
+                where: {
+                    administrador_id,
+                    [Op.and]: {
+                        id: {
+                            [Op.ne]: administrador_id
+                        }
+                    },
+                    [Op.or]: [
+                        {
+                            nombre: {
+                                [Op.like]: `%${query}%`
+                            }
+                        },
+                        {
+                            email: {
+                                [Op.like]: `%${query}%`
+                            }
+                        }
+                    ]
+                }
+            };
+
+            const usuarios = await Usuario.findAll({
+                ...params,
+                order: [['createdAt', 'DESC']]
+            });
+
+            resolve({
+                status: 200,
+                message: 'Usuarios encontrados',
+                response: {
+                    usuarios: usuarios.length
+                }
+            });
+
+        } catch (error) {
+            reject({
+                status: 500,
+                message: 'Error al obtener usuarios'
+            });
+        }
+    });
+}
+
+export function obtenerUsuarioPorIDService(
+    id: string
+) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const usuario = await Usuario.findByPk(id);
+
+            if (!usuario) {
+                reject({
+                    status: 404,
+                    message: 'Usuario no encontrado'
+                });
+                return;
+            }
+
+            resolve({
+                status: 200,
+                message: 'Usuario encontrado',
+                response: {
+                    usuario
+                }
+            });
+
+        } catch (error) {
+            reject({
+                status: 500,
+                message: 'Error al obtener usuario'
             });
         }
     });

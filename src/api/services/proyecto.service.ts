@@ -1,3 +1,4 @@
+import { Op } from 'sequelize';
 import { Proyecto } from '../models/proyecto.model';
 
 export async function crearService(
@@ -19,7 +20,7 @@ export async function crearService(
 
             resolve({
                 status: 200,
-                message: `El proyecto ${nombre} ha sido creado correctamente`,
+                message: `El proyecto ha sido creado correctamente`,
             });
 
         } catch (error: any) {
@@ -131,14 +132,39 @@ export function actualizarService(
 }
 
 export function obtenerProyectosPorAdministradorService(
-    administrador_id: string
+    administrador_id: string,
+    query: string = '',
+    page: number = 1,
+    limit: number = 10
 ) {
     return new Promise(async (resolve, reject) => {
         try {
-            const proyectos = await Proyecto.findAll({
+            let offset = (page - 1) * limit;
+
+            let params = {
                 where: {
-                    administrador_id
-                }
+                    administrador_id,
+                    [Op.or]: [
+                        {
+                            nombre: {
+                                [Op.like]: `%${query}%`
+                            }
+                        },
+                        {
+                            descripcion: {
+                                [Op.like]: `%${query}%`
+                            }
+                        }
+                    ]
+                },
+                limit,
+                offset,
+                order: [['createdAt', 'DESC']]
+            };
+
+            const proyectos = await Proyecto.findAll({
+                ...params,
+                order: [['createdAt', 'DESC']]
             });
 
             resolve({
@@ -153,6 +179,84 @@ export function obtenerProyectosPorAdministradorService(
             reject({
                 status: 500,
                 message: 'Error al obtener proyectos'
+            });
+        }
+    });
+}
+
+export function obtenerTotalProyectosPorAdministradorService(
+    administrador_id: string,
+    query: string = '',
+) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let params = {
+                where: {
+                    administrador_id,
+                    [Op.or]: [
+                        {
+                            nombre: {
+                                [Op.like]: `%${query}%`
+                            }
+                        },
+                        {
+                            descripcion: {
+                                [Op.like]: `%${query}%`
+                            }
+                        }
+                    ]
+                },
+            };
+
+            const proyectos = await Proyecto.findAll({
+                ...params,
+                order: [['createdAt', 'DESC']]
+            });
+
+            resolve({
+                status: 200,
+                message: 'Proyectos encontrados',
+                response: {
+                    proyectos: proyectos.length
+                }
+            });
+
+        } catch (error) {
+            reject({
+                status: 500,
+                message: 'Error al obtener proyectos'
+            });
+        }
+    });
+}
+
+export function obtenerProyectoPorIDService(
+    id: string
+) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const proyecto = await Proyecto.findByPk(id);
+
+            if (!proyecto) {
+                reject({
+                    status: 404,
+                    message: 'Proyecto no encontrado'
+                });
+                return;
+            }
+
+            resolve({
+                status: 200,
+                message: 'Proyecto encontrado',
+                response: {
+                    proyecto
+                }
+            });
+
+        } catch (error) {
+            reject({
+                status: 500,
+                message: 'Error al obtener proyecto'
             });
         }
     });

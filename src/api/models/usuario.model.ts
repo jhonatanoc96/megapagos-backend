@@ -48,10 +48,7 @@ export class Usuario extends Model<UsuarioInterface> {
         // Hash password before creating the user
         const salt = await bcrypt.genSalt(10);
         usuario.password = await bcrypt.hash(usuario.password, salt);
-    }
 
-    @BeforeCreate
-    static async createAdmin(usuario: Usuario) {
         // If rol == 'administrador', create a new administrador, get id and set to administrador_id
         if (usuario.rol === 'administrador') {
             const administrador = new Administrador();
@@ -63,8 +60,8 @@ export class Usuario extends Model<UsuarioInterface> {
             await administrador.save();
 
             usuario.administrador_id = administrador
-            ? administrador.id
-            : null;
+                ? administrador.id
+                : null;
         }
     }
 
@@ -81,6 +78,10 @@ export class Usuario extends Model<UsuarioInterface> {
 
     @BeforeUpdate
     static async updateAdmin(usuario: Usuario) {
+        // Hash password before updating the user
+        const salt = await bcrypt.genSalt(10);
+        usuario.password = await bcrypt.hash(usuario.password, salt);
+
         // If rol changes from 'usuario' to 'administrador', create a new administrador
         if (usuario.changed('rol') && usuario.rol === 'administrador') {
             const administrador = new Administrador();
